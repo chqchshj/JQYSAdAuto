@@ -1,0 +1,49 @@
+name: Build JQYSAdAuto
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Theos
+        run: |
+          git clone --depth 1 https://github.com/theos/theos.git $HOME/theos
+          echo "THEOS=$HOME/theos" >> $GITHUB_ENV
+          
+      - name: Setup SDK
+        run: |
+          curl -L https://github.com/theos/sdks/archive/refs/heads/master.zip -o /tmp/sdks.zip
+          unzip /tmp/sdks.zip -d /tmp
+          mkdir -p $HOME/theos/sdks
+          mv /tmp/sdks-master/*.sdk $HOME/theos/sdks/ 2>/dev/null || true
+          ls $HOME/theos/sdks/
+          
+      - name: Create binary plist
+        run: |
+          cat > jqysadauto.plist << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Filter</key>
+    <dict>
+        <key>Executables</key>
+        <array>
+            <string>JQYS</string>
+        </array>
+    </dict>
+</dict>
+</plist>
+EOF
+          plutil -convert binary1 jqysadauto.plist
+        
+      - name: Build
+        run: make package
+        
+      - name: Upload deb
+        uses: actions/upload-artifact@v4
+        with:
+          name: JQYSAdAuto-deb
+          path: packages/*.deb

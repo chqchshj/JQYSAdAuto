@@ -1,0 +1,9 @@
+Package: com.rascoondigi.jqysadauto
+Name: JQYSAdAuto
+Version: 1.2.0
+Architecture: iphoneos-arm64e
+Description: Auto-show rewarded ads in JQYS
+Maintainer: Hermes Agent
+Author: Hermes Agent
+Section: Tweaks
+Depends: mobilesubstrate
