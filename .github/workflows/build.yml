@@ -1,1 +1,58 @@
-bmFtZTogQnVpbGQKCm9uOgogIHB1c2g6CiAgICBicmFuY2hlczogW21hc3Rlcl0KICB3b3JrZmxvd19kaXNwYXRjaDoKCnBlcm1pc3Npb25zOgogIGNvbnRlbnRzOiB3cml0ZQoKam9iczoKICBidWlsZDoKICAgIHJ1bnMtb246IG1hY29zLWxhdGVzdAogICAgCiAgICBlbnY6CiAgICAgIFRIRU9TOiAkeyB7IGdpdGh1Yi53b3Jrc3BhY2UgfX0vdGhlb3MKICAgIAogICAgc3RlcHM6CiAgICAgIC0gdXNlczogYWN0aW9ucy9jaGVja291dEB2NAogICAgICAKICAgICAgLSBuYW1lOiBDYWNoZSBUaGVvcwogICAgICAgIHVzZXM6IGFjdGlvbnMvY2FjaGVAdjQKICAgICAgICB3aXRoOgogICAgICAgICAgcGF0aDogJHsgeyBlbnYuVEhFT1MgfX0KICAgICAgICAgIGtleTogJHsgeyBydW5uZXIub3MgfX0tdGhlb3MtJHsgeyBoYXNoRmlsZXMoJy5naXRodWIvd29ya2Zsb3dzL2J1aWxkLnltbCcpIH19CiAgICAgICAgICAKICAgICAgLSBuYW1lOiBJbnN0YWxsIFRoZW9zCiAgICAgICAgaWY6IHN0ZXBzLmNhY2hlLXRoZW9zLm91dHB1dHMuY2FjaGUtaGl0ICE9ICd0cnVlJwogICAgICAgIHJ1bjogfAogICAgICAgICAgZ2l0IGNsb25lIC0tcmVjdXJzaXZlIGh0dHBzOi8vZ2l0aHViLmNvbS90aGVvcy90aGVvcy5naXQgJHsgeyBlbnYuVEhFT1MgfX0KICAgICAgICAgIAogICAgICAtIG5hbWU6IENhY2hlIFNES3MKICAgICAgICB1c2VzOiBhY3Rpb25zL2NhY2hlQHY0CiAgICAgICAgd2l0aDoKICAgICAgICAgIHBhdGg6ICR7IHsgZW52LlRIRU9TIH19L3Nka3MKICAgICAgICAgIGtleTogJHsgeyBydW5uZXIub3MgfX0tdGhlb3Mtc2Rrcy1pUGhvbmVPUzE2LjUKICAgICAgICAgIAogICAgICAtIG5hbWU6IERvd25sb2FkIGlPUyBTREsKICAgICAgICBpZjogc3RlcHMuY2FjaGUtc2Rrcy5vdXRwdXRzLmNhY2hlLWhpdCAhPSAndHJ1ZScKICAgICAgICBydW46IHwKICAgICAgICAgIG1rZGlyIC1wICR7IHsgZW52LlRIRU9TIH19L3Nka3MKICAgICAgICAgIGN1cmwgLUwgLW8gc2RrLnRhci54eiBodHRwczovL2dpdGh1Yi5jb20vdGhlb3Mvc2Rrcy9yZWxlYXNlcy9kb3dubG9hZC9tYXN0ZXItMTQ2ZTQxZi9pUGhvbmVPUzE2LjUuc2RrLnRhci54egogICAgICAgICAgdGFyIC14SmYgc2RrLnRhci54eiAtQyAkIHsgZW52LlRIRU9TIH19L3Nka3MKICAgICAgICAgIHJtIHNkay50YXIueHoKICAgICAgICAgIAogICAgICAtIG5hbWU6IEluc3RhbGwgYnVpbGQgZGVwcwogICAgICAgIHJ1bjogYnJldyBpbnN0YWxsIGxkaWQgbWFrZQogICAgICAgIAogICAgICAtIG5hbWU6IEJ1aWxkCiAgICAgICAgcnVuOiB8CiAgICAgICAgICBleHBvcnQgUEFUSD0iJChicmV3IC0tcHJlZml4IG1ha2UpL2xpYmV4ZWMvZ251YmluOiRQQVRIIgogICAgICAgICAgbWFrZSBwYWNrYWdlCiAgICAgICAgICAKICAgICAgLSBuYW1lOiBVcGxvYWQgLmRlYgogICAgICAgIHVzZXM6IGFjdGlvbnMvdXBsb2FkLWFydGlmYWN0QHY0CiAgICAgICAgaWY6IHN1Y2Nlc3MoKQogICAgICAgIHdpdGg6CiAgICAgICAgICBuYW1lOiBKUVlTQWRBdXRvLWRlYgogICAgICAgICAgcGF0aDogcGFja2FnZXMvKi5kZWIK
+name: Build
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-latest
+    
+    env:
+      THEOS: ${{ github.workspace }}/theos
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Cache Theos
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.THEOS }}
+          key: ${{ runner.os }}-theos-${{ hashFiles('.github/workflows/build.yml') }}
+          
+      - name: Install Theos
+        if: steps.cache-theos.outputs.cache-hit != 'true'
+        run: git clone --recursive https://github.com/theos/theos.git ${{ env.THEOS }}
+          
+      - name: Cache SDKs
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.THEOS }}/sdks
+          key: ${{ runner.os }}-theos-sdks-iPhoneOS16.5
+          
+      - name: Download iOS SDK
+        if: steps.cache-sdks.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ${{ env.THEOS }}/sdks
+          curl -L -o sdk.tar.xz https://github.com/theos/sdks/releases/download/master-146e41f/iPhoneOS16.5.sdk.tar.xz
+          tar -xJf sdk.tar.xz -C ${{ env.THEOS }}/sdks
+          rm sdk.tar.xz
+          
+      - name: Install build deps
+        run: brew install ldid make
+          
+      - name: Build
+        run: |
+          export PATH="$(brew --prefix make)/libexec/gnubin:$PATH"
+          make package
+          
+      - name: Upload .deb
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: JQYSAdAuto-deb
+          path: packages/*.deb
