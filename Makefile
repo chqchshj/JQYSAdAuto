@@ -6,6 +6,6 @@ include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = JQYSAdAuto
 JQYSAdAuto_FILES = Tweak.xm
-JQYSAdAuto_CFLAGS = -fobjc-arc
+JQYSAdAuto_CFLAGS = -fobjc-arc -Wno-deprecated-declarations
 
 include $(THEOS_MAKE_PATH)/tweak.mk
